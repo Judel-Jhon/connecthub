@@ -21,7 +21,20 @@ import {
   DEPARTMENTS,
   PRIORITY_COLORS,
   ConcernPriority,
+  MOCK_CONCERNS,
+  MOCK_CURRENT_USER,
+  Concern,
 } from '../constants/connectHubData';
+import { AuthStore } from '../constants/authStore';
+
+// Simple AI priority simulation based on keywords in description
+function inferAIPriority(text: string): ConcernPriority {
+  const lower = text.toLowerCase();
+  if (lower.includes('urgent') || lower.includes('fire') || lower.includes('danger') || lower.includes('injury')) return 'critical';
+  if (lower.includes('broken') || lower.includes('not working') || lower.includes('failed') || lower.includes('cannot')) return 'high';
+  if (lower.includes('slow') || lower.includes('issue') || lower.includes('problem')) return 'medium';
+  return 'low';
+}
 
 export default function SubmitConcernScreen() {
   const [title, setTitle] = useState('');
@@ -33,9 +46,64 @@ export default function SubmitConcernScreen() {
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   const handleSubmit = () => {
+    if (!title.trim()) {
+      Alert.alert('Missing Field', 'Please enter a concern title.');
+      return;
+    }
+    if (!category) {
+      Alert.alert('Missing Field', 'Please select a category.');
+      return;
+    }
+    if (!department) {
+      Alert.alert('Missing Field', 'Please select a department.');
+      return;
+    }
+    if (!description.trim() || description.trim().length < 10) {
+      Alert.alert('Missing Field', 'Please provide a detailed description (at least 10 characters).');
+      return;
+    }
+
+    // Get logged-in user or fall back to mock
+    const currentUser = AuthStore.getUser() ?? MOCK_CURRENT_USER;
+
+    // AI-simulated suggestions
+    const aiPriority = inferAIPriority(description);
+    const aiConfidence = Math.floor(Math.random() * 18) + 78; // 78–95%
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-PH', {
+      month: 'short', day: 'numeric', year: 'numeric',
+    });
+
+    const newConcern: Concern = {
+      id: `c${Date.now()}`,
+      title: title.trim(),
+      description: description.trim(),
+      category,
+      status: 'pending',
+      priority: aiPriority,
+      submittedBy: currentUser.name,
+      submitterAvatar: currentUser.avatar,
+      department,
+      dateSubmitted: dateStr,
+      lastUpdated: dateStr,
+      // AI suggestions
+      aiSuggestedCategory: category,
+      aiSuggestedPriority: aiPriority,
+      aiGeneratedSummary: `${title.trim()}. Submitted by ${currentUser.name} under ${department}.`,
+      aiConfidence,
+      statusHistory: [
+        { status: 'pending', date: dateStr, updatedBy: 'System' },
+      ],
+      responses: [],
+    };
+
+    // ✅ Push to shared in-memory store — now visible to admin + My Concerns
+    MOCK_CONCERNS.unshift(newConcern);
+
     Alert.alert(
-      'Concern Submitted',
-      'Your concern has been successfully submitted. You will receive updates on its status through the app.',
+      '✅ Concern Submitted',
+      `Your concern has been submitted and will be reviewed by the admin.\n\nAI Priority: ${aiPriority.toUpperCase()} (${aiConfidence}% confidence)`,
       [{ text: 'OK', onPress: () => router.push('/my-concerns' as Href) }]
     );
   };

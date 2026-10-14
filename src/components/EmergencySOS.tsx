@@ -7,13 +7,13 @@ import {
   Animated,
   Pressable,
   ActivityIndicator,
-  Image,
   Platform,
   Alert,
   StyleSheet,
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LeafletMap } from './LeafletMap';
 import * as Location from 'expo-location';
 import {
   EmergencyType,
@@ -22,6 +22,7 @@ import {
   MOCK_EMERGENCY_ALERTS,
   MOCK_CURRENT_USER,
 } from '../constants/connectHubData';
+import { AuthStore } from '../constants/authStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -45,7 +46,6 @@ export function EmergencySOS({ onAlertSent }: Props) {
   const [holdProgress] = useState(new Animated.Value(0));
   const [holding, setHolding] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number; label: string } | null>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
 
   const holdAnimation = useRef<Animated.CompositeAnimation | null>(null);
   const holdFired = useRef(false);
@@ -69,7 +69,6 @@ export function EmergencySOS({ onAlertSent }: Props) {
     setStep('select');
     setSelectedType(null);
     setLocation(null);
-    setMapLoaded(false);
     holdProgress.setValue(0);
     holdFired.current = false;
     setModalVisible(true);
@@ -154,11 +153,14 @@ export function EmergencySOS({ onAlertSent }: Props) {
         month: 'short', day: 'numeric', year: 'numeric',
       });
 
+      // Get the actual logged-in user for the alert
+      const reporter = AuthStore.getUser() ?? MOCK_CURRENT_USER;
+
       MOCK_EMERGENCY_ALERTS.unshift({
         id: `sos-${Date.now()}`,
         type: selectedType!,
-        reportedBy: MOCK_CURRENT_USER.name,
-        reporterAvatar: MOCK_CURRENT_USER.avatar,
+        reportedBy: reporter.name,
+        reporterAvatar: reporter.avatar,
         latitude: lat,
         longitude: lng,
         locationLabel: label,
@@ -175,17 +177,11 @@ export function EmergencySOS({ onAlertSent }: Props) {
     }
   }, [selectedType, onAlertSent]);
 
-  // ── OpenStreetMap static map URL ──────────────────────────
-  const mapUrl = location
-    ? `https://staticmap.openstreetmap.de/staticmap.php?center=${location.lat},${location.lng}&zoom=16&size=600x200&markers=${location.lat},${location.lng},red-marker-small`
-    : null;
-
   // ── Hold progress bar interpolation ──────────────────────
   const progressWidth = holdProgress.interpolate({
     inputRange: [0, 1],
     outputRange: ['0%', '100%'],
   });
-  // progressColor intentionally not stored — applied directly on the Animated view
 
   return (
     <>
@@ -348,29 +344,17 @@ export function EmergencySOS({ onAlertSent }: Props) {
                   </Text>
                 </View>
 
-                {/* Map preview */}
+                {/* Interactive Leaflet Map */}
                 <View style={styles.mapWrap}>
-                  <Text style={styles.mapLabel}>Your Pinned Location</Text>
-                  {mapUrl && (
-                    <View style={styles.mapContainer}>
-                      <Image
-                        source={{ uri: mapUrl }}
-                        style={styles.mapImage}
-                        onLoad={() => setMapLoaded(true)}
-                        onError={() => setMapLoaded(true)}
-                      />
-                      {!mapLoaded && (
-                        <View style={styles.mapPlaceholder}>
-                          <ActivityIndicator color="#4F46E5" />
-                        </View>
-                      )}
-                      {/* Pin overlay */}
-                      <View style={styles.mapPin}>
-                        <Ionicons name="location" size={28} color="#EF4444" />
-                      </View>
-                    </View>
-                  )}
-                  <View style={styles.coordRow}>
+                  <Text style={styles.mapLabel}>📍 Your Pinned Location</Text>
+                  <LeafletMap
+                    latitude={location.lat}
+                    longitude={location.lng}
+                    height={200}
+                    zoom={16}
+                    label={location.label}
+                  />
+                  <View style={[styles.coordRow, { marginTop: 10 }]}>
                     <Ionicons name="location-outline" size={14} color="#64748B" />
                     <Text style={styles.coordText} numberOfLines={2}>
                       {location.label}

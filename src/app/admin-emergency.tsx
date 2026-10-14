@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { globalStyles } from '../styles/globalStyles';
 import { BottomNavBar } from '../components/BottomNavBar';
+import { LeafletMap } from '../components/LeafletMap';
 import {
   MOCK_EMERGENCY_ALERTS,
   EMERGENCY_TYPE_LABELS,
@@ -265,7 +266,7 @@ function AlertCard({
         <Text style={s.timeText}>{alert.dateReported} at {alert.timestamp}</Text>
       </View>
 
-      {/* Location */}
+      {/* Location + tap for full map */}
       <TouchableOpacity
         style={s.locationRow}
         onPress={() => onOpenMap(alert.latitude, alert.longitude)}
@@ -281,10 +282,21 @@ function AlertCard({
           </Text>
         </View>
         <View style={s.mapBadge}>
-          <Ionicons name="map-outline" size={12} color="#4F46E5" />
-          <Text style={s.mapBadgeText}>Open Map</Text>
+          <Ionicons name="open-outline" size={12} color="#4F46E5" />
+          <Text style={s.mapBadgeText}>Full Map</Text>
         </View>
       </TouchableOpacity>
+
+      {/* Embedded interactive map */}
+      <View style={{ marginHorizontal: 16, marginBottom: 14 }}>
+        <LeafletMap
+          latitude={alert.latitude}
+          longitude={alert.longitude}
+          height={160}
+          zoom={15}
+          label={alert.locationLabel}
+        />
+      </View>
 
       {/* Divider */}
       <View style={s.divider} />

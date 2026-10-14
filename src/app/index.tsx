@@ -19,9 +19,10 @@ import {
   STATUS_COLORS,
   STATUS_LABELS,
 } from '../constants/connectHubData';
+import { AuthStore } from '../constants/authStore';
 
 export default function HomeScreen() {
-  const user = MOCK_CURRENT_USER;
+  const user = AuthStore.getUser() ?? MOCK_CURRENT_USER;
   const userConcerns = MOCK_CONCERNS.filter((c) => c.submittedBy === user.name);
   const pendingCount = userConcerns.filter((c) => c.status === 'pending').length;
   const inProgressCount = userConcerns.filter(

@@ -1,27 +1,26 @@
-import React, { useState, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { Href, router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
+  Linking,
   SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleSheet,
-  Linking,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router, Href } from 'expo-router';
-import { useFocusEffect } from 'expo-router';
 import { BottomNavBar } from '../components/BottomNavBar';
 import {
-  MOCK_CONCERNS,
-  STATUS_COLORS,
-  STATUS_LABELS,
-  MOCK_EMERGENCY_ALERTS,
-  EMERGENCY_TYPE_LABELS,
   EMERGENCY_TYPE_COLORS,
   EMERGENCY_TYPE_ICONS,
+  EMERGENCY_TYPE_LABELS,
   EmergencyAlert,
+  MOCK_CONCERNS,
+  MOCK_EMERGENCY_ALERTS,
+  STATUS_COLORS,
+  STATUS_LABELS,
 } from '../constants/connectHubData';
 
 export default function AdminDashboardScreen() {
