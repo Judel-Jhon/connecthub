@@ -259,6 +259,14 @@ export default function Login() {
 
             <Text style={s.demoHint}>Tap a card to auto-fill credentials</Text>
           </View>
+
+          {/* ── Sign Up Link ── */}
+          <View style={s.footerRow}>
+            <Text style={s.footerText}>Don't have an account?</Text>
+            <TouchableOpacity onPress={() => router.push('/signup' as Href)} activeOpacity={0.8}>
+              <Text style={s.footerLink}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -453,4 +461,16 @@ const s = StyleSheet.create({
     color: 'rgba(255,255,255,0.4)',
     marginTop: 12,
   },
+
+  // Footer signup link
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 24,
+    paddingBottom: 8,
+  },
+  footerText: { fontSize: 14, color: 'rgba(255,255,255,0.65)' },
+  footerLink: { fontSize: 14, color: '#FFF', fontWeight: '800' },
 });
